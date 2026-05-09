@@ -124,6 +124,74 @@ def send_location_email_via_logic_app(location, original_location):
     except Exception as e:
         logger.error(f"ERROR WHILE SENDING EMAIL VIA LOGIC APP: {e}")
 
+def send_batch_summary_email_via_logic_app(all_dates, results, total):
+    """Sends one summary email at the end of a batch when there are failures or NS orphans."""
+    try:
+        failed  = results.get('failed', [])
+        orphans = results.get('ns_orphans', [])
+        created = results.get('created', [])
+        updated = results.get('updated', [])
+        no_change = results.get('no_change', [])
+
+        dates_str = ', '.join(sorted(str(d) for d in all_dates)) if all_dates else 'unknown'
+
+        failed_rows = '\n'.join(
+            f"  - TxnID {r['txn_id']} | date: {r.get('date','')} | step: {r['step']} | error: {r['error']}"
+            for r in failed
+        ) or '  None'
+
+        orphan_rows = '\n'.join(
+            f"  - TxnID {r['txn_id']} | NS location: {r.get('ns_location','')} | note: {r['note']}"
+            for r in orphans
+        ) or '  None'
+
+        subject = f"[Prestige Sync] Batch completed with issues — {len(failed)} failed, {len(orphans)} NS orphans | dates: {dates_str}"
+
+        body = f"""
+Prestige QuickBooks → NetSuite sync batch completed with issues.
+
+DATES PROCESSED: {dates_str}
+
+SUMMARY
+-------
+  Total entries  : {total}
+  Created (new)  : {len(created)}
+  Updated        : {len(updated)}
+  No change      : {len(no_change)}
+  Failed         : {len(failed)}
+  NS Orphans     : {len(orphans)}
+
+FAILED TRANSACTIONS
+-------------------
+{failed_rows}
+
+NS ORPHANS (NetSuite entry exists but DB record missing — manual cleanup required)
+-----------
+{orphan_rows}
+
+ACTION REQUIRED
+---------------
+- Review failed transactions above and repost manually if needed.
+- NS orphans must be manually deleted from NetSuite or re-synced.
+- Failed transaction IDs have been written to a failed_txns_*.txt file on the server.
+        """
+
+        payload = {
+            "subject": subject,
+            "body": body,
+            "to": "elbert.ehsan@epikafleet.com",
+            "cc": "tijo.ammakuzhiyil@epikafleet.com",
+        }
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
+        if response.status_code == 202:
+            logger.info(f"Batch summary alert sent — {len(failed)} failures, {len(orphans)} orphans")
+        else:
+            logger.error(f"Failed to send batch summary alert. Status: {response.status_code}")
+    except Exception as e:
+        logger.error(f"ERROR WHILE SENDING BATCH SUMMARY EMAIL: {e}")
+
+
 def load_mappings():
     try:
         data = json.loads(Netsuite_mappings.Netsuite_mappings)
@@ -157,10 +225,8 @@ def transform_data_in_netsuite_format(journal_entry, mapping, location_mapping):
                 name = entries.get('Name')
 
             
-            logger.info(entries.get('Account'))
-            logger.info(account)
             if account is None:
-                logger.error(f"Invalid Account ID for account: {entries.get('Account')}")
+                logger.error(f"[txn:{journal_entry_id}] No NS mapping for QB account '{entries.get('Account')}' (parsed id: {account_id})")
                 if account_id not in ("89000","71300"):
                     send_email_via_logic_app(account_id, entries.get('Account')) 
                 continue
@@ -178,11 +244,9 @@ def transform_data_in_netsuite_format(journal_entry, mapping, location_mapping):
             location= None
             if class_value:
                 location = location_mapping.get(class_value)
-                logger.info("Location")
-                logger.info(location)
 
             if class_value and location is None:
-                logger.error(f"Invalid Location: {entries.get('Class')}")
+                logger.error(f"[txn:{journal_entry_id}] No NS mapping for QB location '{class_value}'")
                 send_location_email_via_logic_app(class_value, entries.get('Class'))  
                 continue
             

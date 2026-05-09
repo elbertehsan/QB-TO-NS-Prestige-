@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Output artifacts
+failed_txns_*.txt
+*.xlsx

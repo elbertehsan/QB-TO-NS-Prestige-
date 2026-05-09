@@ -94,8 +94,8 @@ def query_data(query_type:str,data:tuple,connection,close_connection:bool = Fals
 
 
     except Exception as e:
-        print(f"{e}")
-   
+        logger.error(f"DB query '{query_type}' failed: {e}")
+
     finally:
         connection.commit()
         cursorr.close()
@@ -107,39 +107,46 @@ def query_data(query_type:str,data:tuple,connection,close_connection:bool = Fals
 
 
 
-def compair_data(journal_entery,transaction_id,connection):
-   
+def compair_data(journal_entery, transaction_id, connection):
     try:
-   
-        data_base_data = query_data("fetch_data",(int(transaction_id)),connection)
-       
-        if data_base_data:
-           
-            hashed_value_in_db = data_base_data[0].get('hashed_data')
-            comparison_result =  generate_and_compair_hash_of_journal_entery(journal_entery,'compare',hashed_value_in_db)
-           
-            if not comparison_result:
-                           
-                new_hashed_value, _ = generate_and_compair_hash_of_journal_entery(journal_entery,'hash')
-                print(f' VALUE CHANGED \n PREVIOUS HASH: {hashed_value_in_db} \n NEW HASH VALUE:{new_hashed_value}')
+        data_base_data = query_data("fetch_data", (int(transaction_id)), connection)
 
-
-                query_status = query_data("update_value",(new_hashed_value,int(transaction_id)),connection,close_connection=True)
-                return {'query_status':query_status,'update_url':data_base_data[0].get('netsuite_location')}
-       
         if not data_base_data:
             return {'query_status': False}
+
+        hashed_value_in_db = data_base_data[0].get('hashed_data')
+        hashes_match = generate_and_compair_hash_of_journal_entery(journal_entery, 'compare', hashed_value_in_db)
+
+        if not hashes_match:
+            new_hashed_value, _ = generate_and_compair_hash_of_journal_entery(journal_entery, 'hash')
+            logger.info(f"[txn:{transaction_id}] Hash changed — NS PATCH must succeed before DB hash is updated")
+            # new_hash is returned but NOT written to DB here — confirm_hash_update() does that after NS PATCH confirms
+            return {
+                'query_status': True,
+                'update_url': data_base_data[0].get('netsuite_location'),
+                'new_hash': new_hashed_value,
+            }
+
         return {'query_status': "No change"}
-   
-    except Exception as e :
-        logger.error(f"ERROR WHILE COMPAIRING DATA: {e}")
+
+    except Exception as e:
+        logger.error(f"[txn:{transaction_id}] ERROR in compair_data: {e}")
 
 
-def post_data_in_database(journal_entery,transaction_id,url,connection):
-
-
+def confirm_hash_update(transaction_id, new_hash, connection):
+    """Called only after a successful NS PATCH to commit the updated hash to DB."""
     try:
-        logger.info(f"Posting Data to DB {journal_entery}")
+        query_data("update_value", (new_hash, int(transaction_id)), connection)
+        logger.info(f"[txn:{transaction_id}] DB hash updated — NS PATCH and DB are now in sync")
+        return True
+    except Exception as e:
+        logger.error(f"[txn:{transaction_id}] Failed to update DB hash after NS PATCH: {e}")
+        return False
+
+
+def post_data_in_database(journal_entery, transaction_id, url, connection):
+    try:
+        logger.info(f"[txn:{transaction_id}] Inserting into DB")
 
 
         generated_hash_value,transactin_date = generate_and_compair_hash_of_journal_entery(journal_entery,'hash')
@@ -152,11 +159,10 @@ def post_data_in_database(journal_entery,transaction_id,url,connection):
 def fetch_all_transaction_ids(connection, date):
     try:
         transaction_ids_data = query_data("fetch_all_transaction_ids", (date), connection)
-        logger.info(transaction_ids_data)
-       
+        logger.info(f"Fetched {len(transaction_ids_data)} transaction IDs from DB for date {date}")
         return transaction_ids_data
     except Exception as e:
-        logger.error(f"Error fetching transaction IDs: {e}")
+        logger.error(f"Error fetching transaction IDs for date {date}: {e}")
         return []
 
 
