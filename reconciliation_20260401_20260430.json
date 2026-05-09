@@ -1,0 +1,721 @@
+{
+  "generated_at": "2026-05-08T15:48:51.669488",
+  "subsidiary": "15 (Prestige)",
+  "date_range": {
+    "from": "2026-04-01",
+    "to": "2026-04-30"
+  },
+  "transaction_sync": {
+    "qb_count": 33218,
+    "ns_count": 33193,
+    "matched": 33181,
+    "missing_from_ns": [
+      "1102725",
+      "1102726",
+      "1103093",
+      "1103409",
+      "1104569",
+      "1104594",
+      "1104649",
+      "1106916",
+      "1106917",
+      "1106918",
+      "1106919",
+      "1106920",
+      "1107338",
+      "1110615",
+      "1111400",
+      "1111572",
+      "1111919",
+      "1112299",
+      "1112422",
+      "1113194",
+      "1113419",
+      "1114867",
+      "1115158",
+      "1116349",
+      "1117239",
+      "1118187",
+      "1119785",
+      "1124706",
+      "1126331",
+      "1131301",
+      "1132025",
+      "1134428",
+      "1134570",
+      "1135617",
+      "1136879",
+      "1137366",
+      "1138216"
+    ],
+    "phantom_in_ns": [
+      "1127132",
+      "1129337",
+      "1130171",
+      "JEA11816412117813648",
+      "JEA1181641211781381014",
+      "JEA11816412117813812545",
+      "JEA11816412117813812547",
+      "JEA11816412117813812548",
+      "JEA11816412117813812549",
+      "JEA11816412117813812554",
+      "JEA11816412117813812558",
+      "JEA11816412117813812560254168"
+    ]
+  },
+  "ns_by_account": {
+    "10080": {
+      "debit": 6373053.599999995,
+      "credit": 5856149.830000002,
+      "name": "Quantum 1151Prestige",
+      "net": 516903.77
+    },
+    "20000": {
+      "debit": 1761710.4600000007,
+      "credit": 1742721.799999997,
+      "name": "Accounts Payable - Trade",
+      "net": 18988.66
+    },
+    "22001": {
+      "debit": 259669.42999999993,
+      "credit": 246338.54999999958,
+      "name": "Taxes Payable : Sales Tax Payable",
+      "net": 13330.88
+    },
+    "40500": {
+      "debit": 43340.08,
+      "credit": 4375633.889999995,
+      "name": "Sales : Sales - Service",
+      "net": -4332293.81
+    },
+    "40400": {
+      "debit": 10471.05,
+      "credit": 1613490.1099999729,
+      "name": "Sales : Sales - Parts",
+      "net": -1603019.06
+    },
+    "40700": {
+      "debit": 38830.60999999986,
+      "credit": 126495.99999999086,
+      "name": "Sales : Sales - Fuel Surcharge",
+      "net": -87665.39
+    },
+    "11000": {
+      "debit": 6427196.580000058,
+      "credit": 6416308.600000012,
+      "name": "Accounts Receivable - Trade",
+      "net": 10887.98
+    },
+    "40706": {
+      "debit": 1224.5600000000002,
+      "credit": 143827.10000000097,
+      "name": "Sales : Sales - Parts : Sales - Shop Supplies",
+      "net": -142602.54
+    },
+    "14000": {
+      "debit": 1279806.2799999805,
+      "credit": 1145652.0499999928,
+      "name": "Inventory",
+      "net": 134154.23
+    },
+    "50001": {
+      "debit": 1196795.6399999913,
+      "credit": 169153.10000000003,
+      "name": "Cost of Goods Sold (COGS) : COGS-Parts & Materials",
+      "net": 1027642.54
+    },
+    "18013": {
+      "debit": 84963.31,
+      "credit": 588.8299999999999,
+      "name": "Property, Plant, & Equipment : Vehicle Buildout",
+      "net": 84374.48
+    },
+    "75010": {
+      "debit": 18812.0,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Occupancy Expenses : CAM, Taxes, & Other",
+      "net": 18812.0
+    },
+    "72020": {
+      "debit": 98197.31000000001,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Bank & Credit Card Fees : Credit Card Fees",
+      "net": 98197.31
+    },
+    "12100": {
+      "debit": 6163491.969999998,
+      "credit": 6318517.920000002,
+      "name": "Other Current Assets : Undeposited Funds",
+      "net": -155025.95
+    },
+    "20438": {
+      "debit": 993104.3800000001,
+      "credit": 829802.8599999979,
+      "name": "Ramp Prestige",
+      "net": 163301.52
+    },
+    "62050": {
+      "debit": 24799.16999999999,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Repairs & Maintenance : Vehicle Repairs",
+      "net": 24799.17
+    },
+    "63040": {
+      "debit": 88832.78999999998,
+      "credit": 3644.09,
+      "name": "Controllable Operating Expenses : Travel & Entertainment : Travel-Operations",
+      "net": 85188.7
+    },
+    "55009": {
+      "debit": 1743821.44,
+      "credit": 343240.05000000005,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : COGS-Mobile Technicians",
+      "net": 1400581.39
+    },
+    "15000": {
+      "debit": 21810.97,
+      "credit": 58885.03,
+      "name": "Inventory : Work in Process (WIP)",
+      "net": -37074.06
+    },
+    "15003": {
+      "debit": 41404.09,
+      "credit": 44189.58,
+      "name": "Inventory : Work in Process (WIP) : Parts & Materials Inventory WIP",
+      "net": -2785.49
+    },
+    "72010": {
+      "debit": 30921.82,
+      "credit": 9.55,
+      "name": "Non-Controllable Expenses - Operating : Bank & Credit Card Fees : Bank Charges",
+      "net": 30912.27
+    },
+    "50410": {
+      "debit": 63882.3799999999,
+      "credit": 772.0,
+      "name": "Cost of Goods Sold (COGS) : COGS-Parts & Materials : COGS - Shop Supplies",
+      "net": 63110.38
+    },
+    "64015": {
+      "debit": 6401.98,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Employee Expenses : Employee Background Checks",
+      "net": 6401.98
+    },
+    "50040": {
+      "debit": 28107.690000000006,
+      "credit": 318.96000000000004,
+      "name": "Cost of Goods Sold (COGS) : COGS-Parts & Materials : COGS- Tool Expenses Company Provided",
+      "net": 27788.73
+    },
+    "12200": {
+      "debit": 59103.55,
+      "credit": 56693.310000000005,
+      "name": "Other Current Assets : Allowance/Reserve for Doubtful Accounts",
+      "net": 2410.24
+    },
+    "64010": {
+      "debit": 23729.11,
+      "credit": 5282.93,
+      "name": "Controllable Operating Expenses : Employee Expenses : Uniforms & Safety Wear",
+      "net": 18446.18
+    },
+    "74060": {
+      "debit": 12992.29,
+      "credit": 3476.14,
+      "name": "Non-Controllable Expenses - Operating : Professional Services : Professional Services - Other",
+      "net": 9516.15
+    },
+    "13228": {
+      "debit": 893030.2199999999,
+      "credit": 236807.21000000002,
+      "name": "I/C Intercompany Receivable : I/C Due From/(To) - Lubezone",
+      "net": 656223.01
+    },
+    "63020": {
+      "debit": 6767.4900000000025,
+      "credit": 152.48,
+      "name": "Controllable Operating Expenses : Travel & Entertainment : Meal Costs",
+      "net": 6615.01
+    },
+    "74860": {
+      "debit": 31699.489999999998,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Utilities : Utilities Other",
+      "net": 31699.49
+    },
+    "63060": {
+      "debit": 2390.010000000001,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Travel & Entertainment : Fuel  Expense- for Internal Use",
+      "net": 2390.01
+    },
+    "50500": {
+      "debit": 253037.7300000001,
+      "credit": 32.54,
+      "name": "Cost of Goods Sold (COGS) : COGS - Fuel",
+      "net": 253005.19
+    },
+    "61040": {
+      "debit": 4159.900000000001,
+      "credit": 56.87,
+      "name": "Controllable Operating Expenses : Office & Cleaning Expenses : Office Supplies",
+      "net": 4103.03
+    },
+    "20435": {
+      "debit": 3193.08,
+      "credit": 4191.23,
+      "name": "American Express - 8008Prestige",
+      "net": -998.15
+    },
+    "74430": {
+      "debit": 2651.4900000000002,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Advertising & Promotions : Other Advertising",
+      "net": 2651.49
+    },
+    "62010": {
+      "debit": 2064.33,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Repairs & Maintenance : Building Repairs",
+      "net": 2064.33
+    },
+    "66010": {
+      "debit": 1447.75,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Equipment, Tools, & Other Shop Supplies : Shop Supply",
+      "net": 1447.75
+    },
+    "74210": {
+      "debit": 32716.059999999998,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Technology & Software Expenses : Technology Expense - Other",
+      "net": 32716.06
+    },
+    "16010": {
+      "debit": 231611.05,
+      "credit": 51113.00000000001,
+      "name": "Prepaid Expenses : Prepaid Expenses - Other",
+      "net": 180498.05
+    },
+    "73020": {
+      "debit": 98476.27,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Insurance : Insurance - Automotive",
+      "net": 98476.27
+    },
+    "57005": {
+      "debit": 113557.77000000003,
+      "credit": 35287.99999999998,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Benefits : Other Benefits",
+      "net": 78269.77
+    },
+    "12015": {
+      "debit": 635.59,
+      "credit": 1481.8899999999999,
+      "name": "A/R- Other : A/R - Employee Loans",
+      "net": -846.3
+    },
+    "21005": {
+      "debit": 34665.29,
+      "credit": 32710.93,
+      "name": "Accrued Payroll & Related : Employee W/H 401K",
+      "net": 1954.36
+    },
+    "57001": {
+      "debit": 181937.09000000005,
+      "credit": 35139.7,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Benefits : Employer Payroll Taxes-CGS",
+      "net": 146797.39
+    },
+    "55011": {
+      "debit": 227081.11000000007,
+      "credit": 41680.439999999995,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : COGS-Overtime",
+      "net": 185400.67
+    },
+    "56200": {
+      "debit": 394528.02999999985,
+      "credit": 69654.25,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Bonus",
+      "net": 324873.78
+    },
+    "68010": {
+      "debit": 21000.0,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Repairs & Maintenance : Automobile Expense",
+      "net": 21000.0
+    },
+    "71120": {
+      "debit": 34454.89999999995,
+      "credit": 8681.509999999998,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Health & Other Insurance",
+      "net": 25773.39
+    },
+    "57004": {
+      "debit": 10233.800000000001,
+      "credit": 0.0,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Benefits : Health Insurance",
+      "net": 10233.8
+    },
+    "57003": {
+      "debit": 36951.02999999999,
+      "credit": 0.0,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Benefits : Workers Compensation",
+      "net": 36951.03
+    },
+    "74030": {
+      "debit": 35688.359999999986,
+      "credit": 6214.5099999999975,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Payroll Service",
+      "net": 29473.85
+    },
+    "71010": {
+      "debit": 503880.20999999985,
+      "credit": 98391.00000000001,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Payroll - Sales & Admin",
+      "net": 405489.21
+    },
+    "71110": {
+      "debit": 49247.490000000005,
+      "credit": 8176.79,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Payroll Taxes - Sales & Admin",
+      "net": 41070.7
+    },
+    "71140": {
+      "debit": 180.51999999999998,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Workers Compensation",
+      "net": 180.52
+    },
+    "71160": {
+      "debit": 165855.24000000002,
+      "credit": 1885.71,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Bonus",
+      "net": 163969.53
+    },
+    "21002": {
+      "debit": 205172.16999999998,
+      "credit": 153436.12,
+      "name": "Accrued Payroll & Related : Accrued Bonus",
+      "net": 51736.05
+    },
+    "71150": {
+      "debit": 7358.119999999999,
+      "credit": 448.0,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Payroll- PTO",
+      "net": 6910.12
+    },
+    "21001": {
+      "debit": 584490.08,
+      "credit": 226302.41,
+      "name": "Accrued Payroll & Related : Accrued Payroll",
+      "net": 358187.67
+    },
+    "87000": {
+      "debit": 0.0,
+      "credit": 3554.4900000000002,
+      "name": "Other Income",
+      "net": -3554.49
+    },
+    "71180": {
+      "debit": 1227.11,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Employee Recognition",
+      "net": 1227.11
+    },
+    "61030": {
+      "debit": 2810.1299999999997,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Office & Cleaning Expenses : Postage",
+      "net": 2810.13
+    },
+    "71130": {
+      "debit": 6689.01,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Payroll - OpCo Sales & Administration : Employer 401k Contributions",
+      "net": 6689.01
+    },
+    "57002": {
+      "debit": 13884.83,
+      "credit": 0.0,
+      "name": "Cost of Goods Sold (COGS) : COGS Labor : Benefits : Employer 401K Contributions",
+      "net": 13884.83
+    },
+    "89210": {
+      "debit": 1154.4299999999998,
+      "credit": 984.8600000000001,
+      "name": "Tax Expenses : Sales Tax Adjustment",
+      "net": 169.57
+    },
+    "13220": {
+      "debit": 0.0,
+      "credit": 127.1,
+      "name": "I/C Intercompany Receivable : I/C Due From/(To) - CS Truck & Trailer",
+      "net": -127.1
+    },
+    "18200": {
+      "debit": 15529.91,
+      "credit": 0.0,
+      "name": "Property, Plant, & Equipment : Equipment",
+      "net": 15529.91
+    },
+    "64030": {
+      "debit": 101.02,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Employee Expenses : Training",
+      "net": 101.02
+    },
+    "76030": {
+      "debit": 486.61,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Miscellaneous Non-Controllable : License & Fees (Non-Tech)",
+      "net": 486.61
+    },
+    "40707": {
+      "debit": 28.5,
+      "credit": 2108.75,
+      "name": "Sales : Sales - Service Call",
+      "net": -2080.25
+    },
+    "74230": {
+      "debit": 7333.37,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Technology & Software Expenses : Software & SAAS",
+      "net": 7333.37
+    },
+    "66030": {
+      "debit": 3868.06,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Equipment, Tools, & Other Shop Supplies : Equipment (&lt; $1,500)",
+      "net": 3868.06
+    },
+    "69100": {
+      "debit": 75.0,
+      "credit": 0.0,
+      "name": "Controllable Operating Expenses : Other Operating Expenses : Miscellaneous",
+      "net": 75.0
+    },
+    "76020": {
+      "debit": 700.04,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Miscellaneous Non-Controllable : Dues & Subscriptions (Non-Tech)",
+      "net": 700.04
+    },
+    "87220": {
+      "debit": 21200.0,
+      "credit": 0.0,
+      "name": "Tax Expenses : State/Local Tax",
+      "net": 21200.0
+    },
+    "73010": {
+      "debit": 73641.65,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Insurance : Insurance - General Liability",
+      "net": 73641.65
+    },
+    "18150": {
+      "debit": 0.0,
+      "credit": 32668.21,
+      "name": "Property, Plant, & Equipment : Construction in Progress (CIP)",
+      "net": -32668.21
+    },
+    "65040": {
+      "debit": 16410.04,
+      "credit": 9410.04,
+      "name": "Controllable Operating Expenses : Payments Short/(Over) & Warranty : Bad Debts",
+      "net": 7000.0
+    },
+    "75040": {
+      "debit": 2319.16,
+      "credit": 0.0,
+      "name": "Non-Controllable Expenses - Operating : Occupancy Expenses : Property Tax",
+      "net": 2319.16
+    },
+    "20300": {
+      "debit": 0.0,
+      "credit": 2319.16,
+      "name": "Accrued Payables",
+      "net": -2319.16
+    },
+    "45110": {
+      "debit": 90273.40000000001,
+      "credit": 0.0,
+      "name": "Sales : Customer Rebates",
+      "net": 90273.4
+    },
+    "94613": {
+      "debit": 3476.14,
+      "credit": 0.0,
+      "name": "Non-Recurring EBITDA addbacks : Telecom Addback",
+      "net": 3476.14
+    },
+    "53001": {
+      "debit": 48419.58,
+      "credit": 0.0,
+      "name": "Cost of Goods Sold (COGS) : COGS Shrinkage",
+      "net": 48419.58
+    },
+    "14018": {
+      "debit": 0.0,
+      "credit": 51448.98,
+      "name": "Inventory : Inventory Reserve",
+      "net": -51448.98
+    },
+    "12002": {
+      "debit": 1979.46,
+      "credit": 0.0,
+      "name": "A/R- Other",
+      "net": 1979.46
+    },
+    "94603": {
+      "debit": 40288.73,
+      "credit": 0.0,
+      "name": "Non-Recurring EBITDA addbacks : New Tech Losses",
+      "net": 40288.73
+    },
+    "77025": {
+      "debit": 0.0,
+      "credit": 40288.729999999996,
+      "name": "Non-Controllable Expenses - Operating : Miscellaneous Non-Controllable : New Truck Losses",
+      "net": -40288.73
+    }
+  },
+  "ns_by_location": {
+    "No Location": {
+      "debit": 14569436.090000002,
+      "credit": 15836542.850000031,
+      "net": -1267106.76
+    },
+    "11--Corporate": {
+      "debit": 11172432.810000177,
+      "credit": 6375808.790000027,
+      "net": 4796624.02
+    },
+    "30 - Tallahassee Shop": {
+      "debit": 70998.50999999997,
+      "credit": 94103.9799999999,
+      "net": -23105.47
+    },
+    "33--Mid-Atlantic": {
+      "debit": 157674.5800000001,
+      "credit": 219164.22999999963,
+      "net": -61489.65
+    },
+    "13--Florida": {
+      "debit": 273423.00999999966,
+      "credit": 425993.2000000035,
+      "net": -152570.19
+    },
+    "29 - Mobile Shop": {
+      "debit": 134071.10000000003,
+      "credit": 228480.68999999965,
+      "net": -94409.59
+    },
+    "25 - Texas": {
+      "debit": 344414.8299999995,
+      "credit": 462358.4500000022,
+      "net": -117943.62
+    },
+    "14--OH Valley": {
+      "debit": 172921.92000000004,
+      "credit": 335055.3300000006,
+      "net": -162133.41
+    },
+    "35-Liberty": {
+      "debit": 227084.15999999983,
+      "credit": 335394.02000000037,
+      "net": -108309.86
+    },
+    "18 - Northeast": {
+      "debit": 167544.04999999996,
+      "credit": 200962.6500000002,
+      "net": -33418.6
+    },
+    "24 - Graceland": {
+      "debit": 445127.22000000003,
+      "credit": 724557.6099999972,
+      "net": -279430.39
+    },
+    "27 - Keystone": {
+      "debit": 139118.36000000016,
+      "credit": 246122.94999999955,
+      "net": -107004.59
+    },
+    "19 - Chicago": {
+      "debit": 279483.5400000001,
+      "credit": 415005.7300000058,
+      "net": -135522.19
+    },
+    "22 - Bluegrass": {
+      "debit": 188936.20000000022,
+      "credit": 237755.70000000048,
+      "net": -48819.5
+    },
+    "16--Central": {
+      "debit": 408382.4999999994,
+      "credit": 655481.720000008,
+      "net": -247099.22
+    },
+    "21 - Coastal": {
+      "debit": 229697.75,
+      "credit": 316358.2000000016,
+      "net": -86660.45
+    },
+    "28 - Gulf Coast": {
+      "debit": 231857.23000000027,
+      "credit": 299751.4600000017,
+      "net": -67894.23
+    },
+    "12--Georgia": {
+      "debit": 463159.4799999988,
+      "credit": 775541.2299999972,
+      "net": -312381.75
+    },
+    "15--Mid-South": {
+      "debit": 69542.66999999998,
+      "credit": 81557.47999999998,
+      "net": -12014.81
+    },
+    "20 - Rocky Mtn": {
+      "debit": 235263.43999999983,
+      "credit": 331176.0600000022,
+      "net": -95912.62
+    },
+    "34--Tidewater": {
+      "debit": 66958.75000000001,
+      "credit": 100257.70000000004,
+      "net": -33298.95
+    },
+    "17--Michigan": {
+      "debit": 315532.32000000036,
+      "credit": 442597.7400000037,
+      "net": -127065.42
+    },
+    "32 - California": {
+      "debit": 210525.59000000003,
+      "credit": 273388.4599999997,
+      "net": -62862.87
+    },
+    "23 - Carolinas": {
+      "debit": 267713.01000000007,
+      "credit": 379681.3900000018,
+      "net": -111968.38
+    },
+    "31 - Gotham": {
+      "debit": 360472.3100000004,
+      "credit": 574644.2200000042,
+      "net": -214171.91
+    },
+    "26-Southwest": {
+      "debit": 205388.1800000001,
+      "credit": 288205.3500000012,
+      "net": -82817.17
+    },
+    "36-Gateway": {
+      "debit": 11372.780000000002,
+      "credit": 0.0,
+      "net": 11372.78
+    }
+  }
+}

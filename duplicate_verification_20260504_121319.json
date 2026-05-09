@@ -1,0 +1,168 @@
+{
+  "generated_at": "2026-05-04T12:13:19.639194",
+  "report_source": "netsuite_duplicates_20260504_120957.json",
+  "summary": {
+    "total_pairs": 15,
+    "amounts_match": 1,
+    "amounts_differ": 14,
+    "kept_debit_total": 162677.13,
+    "kept_credit_total": 0.0,
+    "duplicate_debit_total": 313203.65,
+    "duplicate_credit_total": 0.0,
+    "netsuite_inflation": 313203.65,
+    "qb_total_provided": null,
+    "expected_netsuite_total": null
+  },
+  "line_comparison": [
+    {
+      "tran_id": "1278605",
+      "kept_id": "2896315",
+      "dupe_id": "3284843",
+      "kept_debit": 240.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 8.97,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "497137",
+      "kept_id": "2952412",
+      "dupe_id": "3062280",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 1124.8,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "497377",
+      "kept_id": "2952615",
+      "dupe_id": "3062284",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 1004.8,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "497445",
+      "kept_id": "2952677",
+      "dupe_id": "3062285",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 862.4,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "497606",
+      "kept_id": "2952807",
+      "dupe_id": "3062288",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 889.6,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "497607",
+      "kept_id": "2952808",
+      "dupe_id": "3062289",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 828.8,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "496909",
+      "kept_id": "2952219",
+      "dupe_id": "3062277",
+      "kept_debit": 0.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 854.4,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEAFMM781658946",
+      "kept_id": "3193738",
+      "dupe_id": "3193739",
+      "kept_debit": 500.05,
+      "kept_credit": 0.0,
+      "dupe_debit": 182514.59,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA118164121177499",
+      "kept_id": "2897857",
+      "dupe_id": "2898159",
+      "kept_debit": 48493.58,
+      "kept_credit": 0.0,
+      "dupe_debit": 54.97,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA118164121177904",
+      "kept_id": "3033752",
+      "dupe_id": "3033753",
+      "kept_debit": 6397.65,
+      "kept_credit": 0.0,
+      "dupe_debit": 1465.58,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA1181641211780597",
+      "kept_id": "3061424",
+      "dupe_id": "3061425",
+      "kept_debit": 1260.64,
+      "kept_credit": 0.0,
+      "dupe_debit": 1007.96,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA1181641211780621",
+      "kept_id": "3062259",
+      "dupe_id": "3062261",
+      "kept_debit": 16014.7,
+      "kept_credit": 0.0,
+      "dupe_debit": 32678.77,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA1181641211780623",
+      "kept_id": "3062262",
+      "dupe_id": "3062263",
+      "kept_debit": 32678.77,
+      "kept_credit": 0.0,
+      "dupe_debit": 8750.46,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "JEA11816412117813619",
+      "kept_id": "3205854",
+      "dupe_id": "3205856",
+      "kept_debit": 52891.74,
+      "kept_credit": 0.0,
+      "dupe_debit": 76957.55,
+      "dupe_credit": 0.0,
+      "amounts_match": false
+    },
+    {
+      "tran_id": "756858Journal",
+      "kept_id": "3115816",
+      "dupe_id": "3211326",
+      "kept_debit": 4200.0,
+      "kept_credit": 0.0,
+      "dupe_debit": 4200.0,
+      "dupe_credit": 0.0,
+      "amounts_match": true
+    }
+  ]
+}
