@@ -26,8 +26,68 @@ from azure_database_posting import (
 from dotenv import load_dotenv, dotenv_values
 from datetime import datetime
 import json
+import time
 from logger_config import logger
 from locks import netsuite_lock
+
+# Refresh the NS token 1 minute before the 20-min expiry window
+TOKEN_TTL_SECONDS = 19 * 60
+
+
+def _fetch_access_token():
+    """Get a fresh JWT from Azure and exchange it for a NetSuite OAuth2 bearer token."""
+    jwt = get_jwt_token(get_jwt_base_url)
+    if not jwt:
+        logger.error("Token refresh failed — Azure Function returned empty JWT")
+        return None
+    token = generate_access_token(netsuite_base_url, jwt)
+    if not token:
+        logger.error("Token refresh failed — NetSuite did not return an access token")
+        return None
+    return token
+
+
+def _ensure_fresh_token(token_state):
+    """Return a valid access token, refreshing if it is older than TOKEN_TTL_SECONDS."""
+    elapsed = time.time() - token_state.get('fetched_at', 0)
+    if elapsed >= TOKEN_TTL_SECONDS or not token_state.get('token'):
+        logger.info(f"NetSuite token {'expired' if token_state.get('token') else 'not yet obtained'} (age {elapsed:.0f}s) — refreshing")
+        new_token = _fetch_access_token()
+        if new_token:
+            token_state['token'] = new_token
+            token_state['fetched_at'] = time.time()
+            logger.info("NetSuite access token refreshed successfully")
+        else:
+            logger.error("Token refresh failed — continuing with existing token (may cause 401)")
+    return token_state['token']
+
+
+def _force_refresh_token(token_state):
+    """Immediately force a new token regardless of age. Used after a 401 response."""
+    logger.warning("Forcing token refresh after 401 Unauthorized response")
+    token_state['fetched_at'] = 0  # expire it so _ensure_fresh_token always fetches
+    return _ensure_fresh_token(token_state)
+
+
+def _ensure_db_connection(conn_state):
+    """Return a live DB connection, reconnecting if the existing one has been dropped."""
+    conn = conn_state.get('conn')
+    try:
+        c = conn.cursor()
+        c.execute("SELECT 1")
+        c.close()
+        return conn
+    except Exception:
+        logger.warning("DB connection lost — reconnecting")
+        try:
+            new_conn = create_db_connection(database_server, database_user, database_password, database_name)
+            if new_conn:
+                conn_state['conn'] = new_conn
+                logger.info("DB reconnection successful")
+                return new_conn
+        except Exception as e:
+            logger.error(f"DB reconnection failed: {e}")
+        return conn  # return stale — callers will log their own errors
 
 
 load_dotenv()
@@ -51,16 +111,19 @@ def master_function(responce_json):
     mapping_of_net, locations_mapping = load_mappings()
     total = len(sliced_jounral_enteries_raw)
 
-    # ── Single DB connection + single token for the entire batch ─────────────
-    connection = create_db_connection(database_server, database_user, database_password, database_name)
-    if not connection:
+    # ── Single DB connection for the entire batch (with reconnect support) ──
+    _initial_conn = create_db_connection(database_server, database_user, database_password, database_name)
+    if not _initial_conn:
         logger.error("Cannot start batch — DB connection failed")
         return
+    conn_state = {'conn': _initial_conn}
+    connection = _initial_conn
 
-    generated_jwt = get_jwt_token(get_jwt_base_url)
-    access_token  = generate_access_token(netsuite_base_url, generated_jwt)
+    # ── Token state — refreshed automatically every 19 min throughout the batch
+    token_state = {'token': None, 'fetched_at': 0}
+    access_token = _ensure_fresh_token(token_state)
     if not access_token:
-        logger.error("Cannot start batch — NetSuite access token could not be obtained")
+        logger.error("Cannot start batch — initial NetSuite access token could not be obtained")
         return
 
     # ── Result collector (Phase 3) ────────────────────────────────────────────
@@ -106,6 +169,10 @@ def master_function(responce_json):
             logger.info(f"[{i}/{total}][txn:{transacton_id}] Processing | date:{date}")
 
             with netsuite_lock:
+                # Refresh token and DB connection if needed — runs once per transaction
+                access_token = _ensure_fresh_token(token_state)
+                connection = _ensure_db_connection(conn_state)
+
                 comparison_result = compair_data(data_to_post, transacton_id, connection)
 
                 # ── BRANCH A: Not in DB (new transaction) ─────────────────────
@@ -115,6 +182,13 @@ def master_function(responce_json):
                     existing_ns_location = check_journal_entry_by_tranid(
                         netsuite_base_url, access_token, transacton_id
                     )
+                    # 401 safety net: force refresh and retry the SuiteQL lookup once
+                    if existing_ns_location is None:
+                        _force_refresh_token(token_state)
+                        access_token = token_state['token']
+                        existing_ns_location = check_journal_entry_by_tranid(
+                            netsuite_base_url, access_token, transacton_id
+                        )
 
                     if existing_ns_location:
                         # Exists in NS but missing from DB — reconcile both
@@ -123,6 +197,10 @@ def master_function(responce_json):
                             existing_ns_location, access_token, data_to_post
                         )
                         if patch_response is None or patch_response.status_code not in (200, 201, 204):
+                            # Retry once with a fresh token if 401
+                            if patch_response is not None and patch_response.status_code == 401:
+                                access_token = _force_refresh_token(token_state)
+                                patch_response = post_updated_jounral_entry_netsuite(existing_ns_location, access_token, data_to_post)
                             error_msg = patch_response.text if patch_response else "No response from NetSuite on reconcile PATCH"
                             logger.error(f"[txn:{transacton_id}] NS reconcile PATCH failed ({patch_response.status_code if patch_response else 'N/A'}): {error_msg}")
                             results['failed'].append({
@@ -156,6 +234,10 @@ def master_function(responce_json):
                         # Brand new transaction — POST to NS then INSERT to DB
                         logger.info(f"[txn:{transacton_id}] New transaction — posting to NetSuite")
                         ns_response = post_jounral_entry_netsuite(netsuite_base_url, access_token, data_to_post)
+                        # Retry once with a fresh token if 401
+                        if ns_response is not None and ns_response.status_code == 401:
+                            access_token = _force_refresh_token(token_state)
+                            ns_response = post_jounral_entry_netsuite(netsuite_base_url, access_token, data_to_post)
 
                         if ns_response is None or ns_response.status_code not in (200, 201, 204):
                             error_msg = ns_response.text if ns_response else "No response from NetSuite on POST"
@@ -215,6 +297,10 @@ def master_function(responce_json):
                     logger.info(f"[txn:{transacton_id}] Change detected — patching NetSuite | update_url: {ns_update_url}")
 
                     patch_response = post_updated_jounral_entry_netsuite(ns_update_url, access_token, data_to_post)
+                    # Retry once with a fresh token if 401
+                    if patch_response is not None and patch_response.status_code == 401:
+                        access_token = _force_refresh_token(token_state)
+                        patch_response = post_updated_jounral_entry_netsuite(ns_update_url, access_token, data_to_post)
                     if patch_response is None or patch_response.status_code not in (200, 201, 204):
                         error_msg = patch_response.text if patch_response else "No response from NetSuite on PATCH"
                         # DB hash was NOT changed (Phase 1 fix) so next sync will detect the change again and retry
@@ -260,6 +346,9 @@ def master_function(responce_json):
             continue
 
     # ── DELETION SWEEP ────────────────────────────────────────────────────────
+    # Refresh token and DB connection before deletion sweep — main loop may have taken >19 min
+    access_token = _ensure_fresh_token(token_state)
+    connection = _ensure_db_connection(conn_state)
     logger.info(f"Deletion sweep starting — checking DB records for dates: {sorted(all_dates)}")
     db_records_set = set()
     for date in all_dates:
