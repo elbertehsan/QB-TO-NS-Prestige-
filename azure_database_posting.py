@@ -150,7 +150,7 @@ def post_data_in_database(journal_entery, transaction_id, url, connection):
 
 
         generated_hash_value,transactin_date = generate_and_compair_hash_of_journal_entery(journal_entery,'hash')
-        query_data("add_value",(datetime.strptime(transactin_date,"%Y-%m-%d"),int(transaction_id),generated_hash_value,url),connection,close_connection=True)
+        query_data("add_value",(datetime.strptime(transactin_date,"%Y-%m-%d"),int(transaction_id),generated_hash_value,url),connection)
         return True
    
     except Exception as e:

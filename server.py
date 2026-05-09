@@ -101,6 +101,8 @@ class QuickBooksService(ServiceBase):
     chunk_query_phase = {}
     response_cache = {}
     chunk_for_ticket = {}
+    # Protects all class-level state accessed from both the SOAP thread and background chunk threads
+    chunk_lock = threading.Lock()
 
     @classmethod
     def get_date_range(cls, today):
@@ -118,13 +120,14 @@ class QuickBooksService(ServiceBase):
 
     @classmethod
     def generate_and_store_chunks(cls, today):
-        logger.info("Generating chunks...")
-        cls.processed_date_chunks.clear()
-        cls.last_chunk_generation_date = today
-        chunks = list(cls.get_date_range(today))
-        for chunk in chunks:
-            cls.unprocessed_date_chunks.add(chunk)
-        logger.info(f"Chunks generated for {today}: {cls.unprocessed_date_chunks}")
+        with cls.chunk_lock:
+            logger.info("Generating chunks...")
+            cls.processed_date_chunks.clear()
+            cls.last_chunk_generation_date = today
+            chunks = list(cls.get_date_range(today))
+            for chunk in chunks:
+                cls.unprocessed_date_chunks.add(chunk)
+            logger.info(f"Chunks generated for {today}: {cls.unprocessed_date_chunks}")
 
     @rpc(Unicode, Unicode, _returns=Iterable(Unicode))
     def authenticate(ctx, strUserName, strPassword):
@@ -148,17 +151,22 @@ class QuickBooksService(ServiceBase):
             if QuickBooksService.last_chunk_generation_date != today:
                 QuickBooksService.generate_and_store_chunks(today)
 
-            sorted_chunks = sorted(QuickBooksService.unprocessed_date_chunks - QuickBooksService.processed_date_chunks - QuickBooksService.in_progress_date_chunks)
-            unprocessed_chunk = sorted_chunks[0] if sorted_chunks else None
+            with QuickBooksService.chunk_lock:
+                sorted_chunks = sorted(
+                    QuickBooksService.unprocessed_date_chunks
+                    - QuickBooksService.processed_date_chunks
+                    - QuickBooksService.in_progress_date_chunks
+                )
+                unprocessed_chunk = sorted_chunks[0] if sorted_chunks else None
+                if unprocessed_chunk:
+                    QuickBooksService.chunk_for_ticket[ticket] = unprocessed_chunk
 
             if not unprocessed_chunk:
                 return ""
 
             from_chunk, to_chunk = unprocessed_chunk
-            QuickBooksService.chunk_for_ticket[ticket] = unprocessed_chunk
             phase = QuickBooksService.chunk_query_phase.get(unprocessed_chunk, 1)
-            print("here")
-            print(phase)
+            logger.info(f"[chunk:{from_chunk}] sendRequestXML phase {phase} | ticket:{ticket}")
             if phase == 1:
                 QuickBooksService.chunk_query_phase[unprocessed_chunk] = 2
                 return genral_ledger_enteries_xml_query("4a", "Journal", from_chunk, to_chunk, ["TxnNumber","Account"])
@@ -187,52 +195,50 @@ class QuickBooksService(ServiceBase):
             if not chunk:
                 return 100
 
-            current_phase = QuickBooksService.chunk_query_phase.get(chunk, 1)
-            QuickBooksService.response_cache.setdefault(ticket, {})[f'part{current_phase}'] = parsed
+            with QuickBooksService.chunk_lock:
+                current_phase = QuickBooksService.chunk_query_phase.get(chunk, 1)
+                QuickBooksService.response_cache.setdefault(ticket, {})[f'part{current_phase}'] = parsed
 
-            if current_phase < 5:
-                print(current_phase)
-                QuickBooksService.chunk_query_phase[chunk] = current_phase + 1
-                return 1
+                if current_phase < 5:
+                    QuickBooksService.chunk_query_phase[chunk] = current_phase + 1
+                    return 1
 
-            parts = [QuickBooksService.response_cache[ticket].get(f'part{i}') for i in range(1, 6)]
-            if all(parts):
-                cached_parts = list(parts)
-                cached_chunk = chunk  # keep reference
-                
-                #final_merged = merge_general_detail_responses(parts)
-                #master_function(final_merged)
+                parts = [QuickBooksService.response_cache[ticket].get(f'part{i}') for i in range(1, 6)]
+                ready = all(parts)
+                if ready:
+                    cached_parts = list(parts)
+                    cached_chunk = chunk
+                    QuickBooksService.response_cache.pop(ticket, None)
+                    QuickBooksService.chunk_for_ticket.pop(ticket, None)
+                    QuickBooksService.chunk_query_phase.pop(chunk, None)
+                    QuickBooksService.unprocessed_date_chunks.discard(chunk)
+                    QuickBooksService.in_progress_date_chunks.add(chunk)
 
-                QuickBooksService.response_cache.pop(ticket, None)
-                QuickBooksService.chunk_for_ticket.pop(ticket, None)
-                QuickBooksService.chunk_query_phase.pop(chunk, None)
-                QuickBooksService.unprocessed_date_chunks.remove(chunk)
-                QuickBooksService.in_progress_date_chunks.add(chunk)  # track it
+            if not ready:
+                return 100
 
-                def process_in_background(parts_to_process, chunk_ref):
-                    try:
-                        final_merged = merge_general_detail_responses(parts_to_process)
-                        master_function(final_merged)
-                      
-                        # Only mark as processed if master_function succeeded
+            def process_in_background(parts_to_process, chunk_ref):
+                try:
+                    final_merged = merge_general_detail_responses(parts_to_process)
+                    master_function(final_merged)
+
+                    with QuickBooksService.chunk_lock:
                         QuickBooksService.in_progress_date_chunks.discard(chunk_ref)
                         QuickBooksService.processed_date_chunks.add(chunk_ref)
-                        logger.info(f"Chunk {chunk_ref} successfully processed")
-                    except Exception as e:
-                        logger.error(f"Background processing error for chunk {chunk_ref}: {e}")
-                        logger.info(f"In progress chunk details: {QuickBooksService.in_progress_date_chunks}")
-                        # Put it back so it gets retried
+                    logger.info(f"[chunk:{chunk_ref}] Processing complete")
+                except Exception as e:
+                    logger.error(f"[chunk:{chunk_ref}] Background processing error: {e}")
+                    with QuickBooksService.chunk_lock:
                         QuickBooksService.in_progress_date_chunks.discard(chunk_ref)
                         QuickBooksService.failed_date_chunks.add(chunk_ref)
                         QuickBooksService.unprocessed_date_chunks.add(chunk_ref)
 
-                threading.Thread(
+            threading.Thread(
                 target=process_in_background,
                 args=(cached_parts, cached_chunk),
                 name=f"chunk-{cached_chunk[0]}",
                 daemon=True
-                ).start()
-
+            ).start()
 
             return 100
         except Exception as e:

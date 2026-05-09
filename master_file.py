@@ -105,9 +105,8 @@ def master_function(responce_json):
             all_dates.add(date)
             logger.info(f"[{i}/{total}][txn:{transacton_id}] Processing | date:{date}")
 
-            comparison_result = compair_data(data_to_post, transacton_id, connection)
-
             with netsuite_lock:
+                comparison_result = compair_data(data_to_post, transacton_id, connection)
 
                 # ── BRANCH A: Not in DB (new transaction) ─────────────────────
                 if comparison_result and comparison_result.get('query_status') == False:
