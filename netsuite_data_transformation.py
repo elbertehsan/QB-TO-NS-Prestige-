@@ -14,46 +14,102 @@ def send_email_via_logic_app(account, original_account):
         payload = {
             "subject": f"Missing Account Mapping (Prestige): {account}",
             "body": f"""
-            The following account ID was not found in the Netsuite mappings:
-
-
-            - Account: {account}
-            - Original Entry: {original_account}
-
-
-            Please update the mappings accordingly.
-            """,
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr><td style="background:#c0392b;padding:20px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:bold;">&#9888; Missing Account Mapping — Prestige</span>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#333;font-size:14px;">An account ID was encountered during sync that has no NetSuite mapping. The affected line item was skipped.</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="background:#fdf3f2;">
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;font-weight:bold;color:#555;width:160px;">Account ID</td>
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{account}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;">Original Entry</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#333;">{original_account}</td>
+            </tr>
+          </table>
+          <p style="margin:24px 0 0;padding:14px 16px;background:#fff8e1;border-left:4px solid #f39c12;color:#555;font-size:13px;">
+            Please add this account to <strong>Netsuite_mappings.py</strong> and re-run the sync for the affected date.
+          </p>
+        </td></tr>
+        <tr><td style="padding:14px 32px;background:#f9f9f9;border-top:1px solid #eee;font-size:12px;color:#999;">
+          Prestige QB → NetSuite Sync &nbsp;|&nbsp; Auto-generated alert
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+""",
+            "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
             "cc": "tijo.ammakuzhiyil@epikafleet.com"
         }
 
-
         headers = {"Content-Type": "application/json"}
         response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
-
 
         if response.status_code == 202:
             logger.info(f"Notification sent for missing account mapping: {account}")
         else:
             logger.error(f"Failed to send notification. Status: {response.status_code}, Response: {response.text}")
 
-
     except Exception as e:
         logger.error(f"ERROR WHILE SENDING EMAIL VIA LOGIC APP: {e}")
 
 def send_post_failure_email_via_logic_app(transaction_id, error_message, data_size_mb=None):
     try:
-        size_info = f"\n- Payload Size: {data_size_mb:.2f} MB (limit: 1 MB)" if data_size_mb else ""
+        size_row = f"""
+            <tr style="background:#fdf3f2;">
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;font-weight:bold;color:#555;">Payload Size</td>
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;color:#c0392b;">{data_size_mb:.2f} MB &nbsp;<span style="color:#888;">(limit: 1 MB)</span></td>
+            </tr>""" if data_size_mb else ""
+
         payload = {
             "subject": f"Failed to Post Journal Entry (Prestige): TxnID {transaction_id}",
             "body": f"""
-            A journal entry failed to post to NetSuite:
-
-            - Transaction ID: {transaction_id}
-            - Error: {error_message}
-
-            Please investigate and repost manually if required.
-            """,
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr><td style="background:#c0392b;padding:20px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:bold;">&#10060; Journal Entry Post Failed — Prestige</span>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#333;font-size:14px;">A journal entry could not be posted to NetSuite and requires manual attention.</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="background:#fdf3f2;">
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;font-weight:bold;color:#555;width:160px;">Transaction ID</td>
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{transaction_id}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;vertical-align:top;">Error</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#333;word-break:break-word;">{error_message}</td>
+            </tr>{size_row}
+          </table>
+          <p style="margin:24px 0 0;padding:14px 16px;background:#fff8e1;border-left:4px solid #f39c12;color:#555;font-size:13px;">
+            Please investigate and use <strong>retry_failed_transactions.py</strong> to repost manually if required.
+          </p>
+        </td></tr>
+        <tr><td style="padding:14px 32px;background:#f9f9f9;border-top:1px solid #eee;font-size:12px;color:#999;">
+          Prestige QB → NetSuite Sync &nbsp;|&nbsp; Auto-generated alert
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+""",
+            "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
             "cc": "tijo.ammakuzhiyil@epikafleet.com"
         }
@@ -72,13 +128,37 @@ def send_no_transactions_email_via_logic_app(date):
         payload = {
             "subject": f"No Transactions Posted to NetSuite (Prestige) — {date}",
             "body": f"""
-            The end-of-day check has detected that no transactions were posted to NetSuite today:
-
-            - Date: {date}
-
-            This may indicate a sync issue with the QuickBooks Web Connector or NetSuite API.
-            Please investigate.
-            """,
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr><td style="background:#e67e22;padding:20px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:bold;">&#9888; No Transactions Posted — Prestige</span>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#333;font-size:14px;">The end-of-day check detected that <strong>no transactions</strong> were posted to NetSuite for the following date:</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="background:#fef9f0;">
+              <td style="padding:10px 14px;border:1px solid #f5e6cc;font-weight:bold;color:#555;width:160px;">Date</td>
+              <td style="padding:10px 14px;border:1px solid #f5e6cc;color:#e67e22;font-weight:bold;">{date}</td>
+            </tr>
+          </table>
+          <p style="margin:24px 0 0;padding:14px 16px;background:#fff8e1;border-left:4px solid #f39c12;color:#555;font-size:13px;">
+            This may indicate a sync issue with the QuickBooks Web Connector or the NetSuite API. Please investigate promptly.
+          </p>
+        </td></tr>
+        <tr><td style="padding:14px 32px;background:#f9f9f9;border-top:1px solid #eee;font-size:12px;color:#999;">
+          Prestige QB → NetSuite Sync &nbsp;|&nbsp; Auto-generated alert
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+""",
+            "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
             "cc": "tijo.ammakuzhiyil@epikafleet.com"
         }
@@ -97,29 +177,52 @@ def send_location_email_via_logic_app(location, original_location):
         payload = {
             "subject": f"Missing Location Mapping (Prestige): {location}",
             "body": f"""
-            The following location was not found in the Netsuite mappings:
-
-
-            - Location: {location}
-            - Original Entry: {original_location}
-
-
-            Please update the mappings accordingly.
-            """,
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr><td style="background:#8e44ad;padding:20px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:bold;">&#9888; Missing Location Mapping — Prestige</span>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#333;font-size:14px;">A QB class/location was encountered during sync that has no NetSuite mapping. The affected line item was skipped.</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="background:#f9f0ff;">
+              <td style="padding:10px 14px;border:1px solid #e0c8f0;font-weight:bold;color:#555;width:160px;">Location</td>
+              <td style="padding:10px 14px;border:1px solid #e0c8f0;color:#8e44ad;font-weight:bold;">{location}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;">Original Entry</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#333;">{original_location}</td>
+            </tr>
+          </table>
+          <p style="margin:24px 0 0;padding:14px 16px;background:#fff8e1;border-left:4px solid #f39c12;color:#555;font-size:13px;">
+            Please add this location to <strong>Netsuite_mappings.py</strong> (Location_mappings) and re-run the sync for the affected date.
+          </p>
+        </td></tr>
+        <tr><td style="padding:14px 32px;background:#f9f9f9;border-top:1px solid #eee;font-size:12px;color:#999;">
+          Prestige QB → NetSuite Sync &nbsp;|&nbsp; Auto-generated alert
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+""",
+            "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
             "cc": "tijo.ammakuzhiyil@epikafleet.com,Jack.Kegermann@epikafleet.com,mlarson@pfstruck.com,lgeske@managedmobile.com"
         }
 
-
         headers = {"Content-Type": "application/json"}
         response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
-
 
         if response.status_code == 202:
             logger.info(f"Notification sent for missing location mapping: {location}")
         else:
             logger.error(f"Failed to send notification. Status: {response.status_code}, Response: {response.text}")
-
 
     except Exception as e:
         logger.error(f"ERROR WHILE SENDING EMAIL VIA LOGIC APP: {e}")
@@ -127,58 +230,134 @@ def send_location_email_via_logic_app(location, original_location):
 def send_batch_summary_email_via_logic_app(all_dates, results, total):
     """Sends one summary email at the end of a batch when there are failures or NS orphans."""
     try:
-        failed  = results.get('failed', [])
-        orphans = results.get('ns_orphans', [])
-        created = results.get('created', [])
-        updated = results.get('updated', [])
+        failed    = results.get('failed', [])
+        orphans   = results.get('ns_orphans', [])
+        created   = results.get('created', [])
+        updated   = results.get('updated', [])
         no_change = results.get('no_change', [])
 
         dates_str = ', '.join(sorted(str(d) for d in all_dates)) if all_dates else 'unknown'
 
-        failed_rows = '\n'.join(
-            f"  - TxnID {r['txn_id']} | date: {r.get('date','')} | step: {r['step']} | error: {r['error']}"
+        failed_rows_html = ''.join(
+            f"""<tr>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{r['txn_id']}</td>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#555;">{r.get('date','')}</td>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#555;">{r['step']}</td>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#333;word-break:break-word;">{r['error']}</td>
+            </tr>"""
             for r in failed
-        ) or '  None'
+        ) if failed else '<tr><td colspan="4" style="padding:9px 12px;border:1px solid #e8e8e8;color:#999;text-align:center;">None</td></tr>'
 
-        orphan_rows = '\n'.join(
-            f"  - TxnID {r['txn_id']} | NS location: {r.get('ns_location','')} | note: {r['note']}"
+        orphan_rows_html = ''.join(
+            f"""<tr>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{r['txn_id']}</td>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#555;word-break:break-all;">{r.get('ns_location','')}</td>
+              <td style="padding:9px 12px;border:1px solid #f0d0cc;color:#333;">{r['note']}</td>
+            </tr>"""
             for r in orphans
-        ) or '  None'
+        ) if orphans else '<tr><td colspan="3" style="padding:9px 12px;border:1px solid #e8e8e8;color:#999;text-align:center;">None</td></tr>'
 
         subject = f"[Prestige Sync] Batch completed with issues — {len(failed)} failed, {len(orphans)} NS orphans | dates: {dates_str}"
 
         body = f"""
-Prestige QuickBooks → NetSuite sync batch completed with issues.
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0;">
+    <tr><td align="center">
+      <table width="700" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-DATES PROCESSED: {dates_str}
+        <!-- Header -->
+        <tr><td style="background:#2c3e50;padding:20px 32px;">
+          <span style="color:#ffffff;font-size:18px;font-weight:bold;">Prestige QB &#8594; NetSuite Sync — Batch Report</span><br>
+          <span style="color:#95a5a6;font-size:13px;">Completed with issues &nbsp;|&nbsp; Dates: {dates_str}</span>
+        </td></tr>
 
-SUMMARY
--------
-  Total entries  : {total}
-  Created (new)  : {len(created)}
-  Updated        : {len(updated)}
-  No change      : {len(no_change)}
-  Failed         : {len(failed)}
-  NS Orphans     : {len(orphans)}
+        <!-- Summary table -->
+        <tr><td style="padding:28px 32px 0;">
+          <p style="margin:0 0 14px;font-size:15px;font-weight:bold;color:#2c3e50;">Summary</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="background:#eaf4fb;">
+              <td style="padding:10px 14px;border:1px solid #d0e8f5;font-weight:bold;color:#555;width:200px;">Total entries</td>
+              <td style="padding:10px 14px;border:1px solid #d0e8f5;font-weight:bold;color:#2980b9;">{total}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;">Created (new)</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#27ae60;font-weight:bold;">{len(created)}</td>
+            </tr>
+            <tr style="background:#fafafa;">
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;">Updated</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#2980b9;font-weight:bold;">{len(updated)}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;font-weight:bold;color:#555;">No change (skipped)</td>
+              <td style="padding:10px 14px;border:1px solid #e8e8e8;color:#888;">{len(no_change)}</td>
+            </tr>
+            <tr style="background:#fdf3f2;">
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;font-weight:bold;color:#555;">Failed</td>
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{len(failed)}</td>
+            </tr>
+            <tr style="background:#fdf3f2;">
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;font-weight:bold;color:#555;">NS Orphans</td>
+              <td style="padding:10px 14px;border:1px solid #f0d0cc;color:#c0392b;font-weight:bold;">{len(orphans)}</td>
+            </tr>
+          </table>
+        </td></tr>
 
-FAILED TRANSACTIONS
--------------------
-{failed_rows}
+        <!-- Failed transactions -->
+        <tr><td style="padding:28px 32px 0;">
+          <p style="margin:0 0 14px;font-size:15px;font-weight:bold;color:#2c3e50;">Failed Transactions</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr style="background:#e8e8e8;">
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;width:100px;">TxnID</th>
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;width:90px;">Date</th>
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;width:120px;">Step</th>
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;">Error</th>
+            </tr>
+            {failed_rows_html}
+          </table>
+        </td></tr>
 
-NS ORPHANS (NetSuite entry exists but DB record missing — manual cleanup required)
------------
-{orphan_rows}
+        <!-- NS Orphans -->
+        <tr><td style="padding:28px 32px 0;">
+          <p style="margin:0 0 6px;font-size:15px;font-weight:bold;color:#2c3e50;">NS Orphans</p>
+          <p style="margin:0 0 14px;font-size:12px;color:#888;">NetSuite entry exists but DB record is missing — manual cleanup required</p>
+          <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr style="background:#e8e8e8;">
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;width:100px;">TxnID</th>
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;width:220px;">NS Location</th>
+              <th style="padding:9px 12px;border:1px solid #ddd;text-align:left;color:#444;">Note</th>
+            </tr>
+            {orphan_rows_html}
+          </table>
+        </td></tr>
 
-ACTION REQUIRED
----------------
-- Review failed transactions above and repost manually if needed.
-- NS orphans must be manually deleted from NetSuite or re-synced.
-- Failed transaction IDs have been written to a failed_txns_*.txt file on the server.
-        """
+        <!-- Action required -->
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 10px;font-size:15px;font-weight:bold;color:#2c3e50;">Action Required</p>
+          <ul style="margin:0;padding:0 0 0 20px;color:#555;font-size:14px;line-height:1.8;">
+            <li>Review failed transactions above and use <strong>retry_failed_transactions.py</strong> to repost.</li>
+            <li>NS orphans must be manually deleted from NetSuite or re-synced.</li>
+            <li>Failed transaction IDs have been written to a <strong>failed_txns_*.txt</strong> file on the server.</li>
+          </ul>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:14px 32px;background:#f9f9f9;border-top:1px solid #eee;font-size:12px;color:#999;">
+          Prestige QB → NetSuite Sync &nbsp;|&nbsp; Auto-generated batch report
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+"""
 
         payload = {
             "subject": subject,
             "body": body,
+            "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
             "cc": "tijo.ammakuzhiyil@epikafleet.com",
         }
