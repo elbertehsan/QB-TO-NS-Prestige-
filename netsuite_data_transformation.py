@@ -50,7 +50,7 @@ def send_email_via_logic_app(account, original_account):
 """,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": "tijo.ammakuzhiyil@epikafleet.com"
+            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"]
         }
 
         headers = {"Content-Type": "application/json"}
@@ -111,7 +111,7 @@ def send_post_failure_email_via_logic_app(transaction_id, error_message, data_si
 """,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": "tijo.ammakuzhiyil@epikafleet.com"
+            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"]
         }
         headers = {"Content-Type": "application/json"}
         response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
@@ -160,7 +160,7 @@ def send_no_transactions_email_via_logic_app(date):
 """,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": "tijo.ammakuzhiyil@epikafleet.com"
+            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"]
         }
         headers = {"Content-Type": "application/json"}
         response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
@@ -213,7 +213,7 @@ def send_location_email_via_logic_app(location, original_location):
 """,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": "tijo.ammakuzhiyil@epikafleet.com,Jack.Kegermann@epikafleet.com,mlarson@pfstruck.com,lgeske@managedmobile.com"
+            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"]
         }
 
         headers = {"Content-Type": "application/json"}
@@ -359,7 +359,7 @@ def send_batch_summary_email_via_logic_app(all_dates, results, total):
             "body": body,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": "tijo.ammakuzhiyil@epikafleet.com",
+            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"],
         }
         headers = {"Content-Type": "application/json"}
         response = requests.post(AZURE_LOGIC_APP, json=payload, headers=headers)
