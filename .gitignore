@@ -12,6 +12,7 @@ __pycache__/
 
 # Logs
 *.log
+*.log*
 
 # Output artifacts
 failed_txns_*.txt
