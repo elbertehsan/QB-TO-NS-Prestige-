@@ -419,6 +419,7 @@ def transform_data_in_netsuite_format(journal_entry, mapping, location_mapping):
                 logger.error(f"No TxnNumber found in journal entry — skipping to prevent blank tranId in NetSuite {journal_entery}")
                 raise ValueError("No TxnNumber found — cannot post without tranId")
             memo = entries.get('Memo', '')
+            qb_name = entries.get('Name', '')
             class_value = entries.get('Class')
             location= None
             if class_value:
@@ -448,7 +449,7 @@ def transform_data_in_netsuite_format(journal_entry, mapping, location_mapping):
                 "account": {"id": account},
                 "memo": memo,
                 "debit": debit,
-                "custcol1": entries.get('Name'),
+                "custcol1": qb_name,
                 "custcol2": number,
             }
 
