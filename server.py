@@ -94,6 +94,12 @@ def merge_general_detail_responses(parts):
         }
     }
 
+# When True, the Memo (phase 2) column is not fetched from QuickBooks. Use this to
+# unblock days whose Memo text breaks the inbound XML parse. Trade-off: NS journal
+# line items get a blank memo/description; all transactions and lines still post.
+SKIP_MEMO_PHASE = True
+
+
 class QuickBooksService(ServiceBase):
     unprocessed_date_chunks = set()
     processed_date_chunks = set()
@@ -174,7 +180,13 @@ class QuickBooksService(ServiceBase):
                 return genral_ledger_enteries_xml_query("4a", "Journal", from_chunk, to_chunk, ["TxnNumber","Account"])
             elif phase == 2:
                 QuickBooksService.chunk_query_phase[unprocessed_chunk] = 3
-                return genral_ledger_enteries_xml_query("4b", "Journal", from_chunk, to_chunk, ["Memo"])
+                # SKIP_MEMO_PHASE: the Memo column carries the free text that breaks the
+                # inbound XML parse on some days. Fetching TxnNumber (benign, numeric)
+                # instead keeps the 5-phase/merge structure intact while omitting Memo.
+                # Effect: NS line items get a blank "memo"; NO transactions/lines are lost.
+                # Set to False to restore Memo once the parse issue is resolved.
+                memo_columns = ["TxnNumber"] if SKIP_MEMO_PHASE else ["Memo"]
+                return genral_ledger_enteries_xml_query("4b", "Journal", from_chunk, to_chunk, memo_columns)
             elif phase == 3:
                 QuickBooksService.chunk_query_phase[unprocessed_chunk] = 4
                 return genral_ledger_enteries_xml_query("4c", "Journal", from_chunk, to_chunk, ["Name"])
@@ -348,6 +360,10 @@ soap_app = Application([QuickBooksService],
 
 wsgi_app = StripIllegalXMLMiddleware(WsgiApplication(soap_app))
 server = make_server('127.0.0.1', 8000, wsgi_app)
+logger.info(
+    f"=== BUILD 2026-07-17c LIVE === XML-repair middleware ACTIVE | "
+    f"SKIP_MEMO_PHASE={SKIP_MEMO_PHASE}"
+)
 logger.info("Listening on port 8000...")
 try:
     server.serve_forever()
