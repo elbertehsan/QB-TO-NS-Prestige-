@@ -1,6 +1,7 @@
 import logging
 import threading
 import json
+import io
 from datetime import datetime, timedelta
 import xmltodict
 from spyne import Application, rpc, ServiceBase, Unicode, Iterable, Integer
@@ -253,12 +254,48 @@ class QuickBooksService(ServiceBase):
     def getLastError(ctx, ticket):
         return ["", ""]
 
+# ── QuickBooks sometimes emits raw control characters (vertical tab, form feed,
+#    etc.) inside free-text fields like Memo/Name. QBWC forwards them verbatim in
+#    the receiveResponseXML SOAP body, which makes the body un-parseable XML — so
+#    Spyne raises before our handler runs and returns HTTP 500 ("ReceiveResponseXML
+#    failed"), wedging that day's chunk permanently. Strip the XML-1.0-illegal
+#    control bytes from the inbound body before Spyne parses it. Tab (0x09), LF
+#    (0x0A) and CR (0x0D) are legal and preserved; nothing else below 0x20 is.
+_ILLEGAL_XML_BYTES = bytes(b for b in range(0x20) if b not in (0x09, 0x0A, 0x0D))
+
+
+class StripIllegalXMLMiddleware:
+    """WSGI middleware that removes XML-illegal control bytes from the request body."""
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        try:
+            length = int(environ.get('CONTENT_LENGTH') or 0)
+        except (ValueError, TypeError):
+            length = 0
+
+        if length > 0:
+            body = environ['wsgi.input'].read(length)
+            cleaned = body.translate(None, _ILLEGAL_XML_BYTES)
+            if len(cleaned) != len(body):
+                logger.warning(
+                    f"Stripped {len(body) - len(cleaned)} illegal XML control "
+                    f"byte(s) from inbound request body before parsing"
+                )
+            environ['wsgi.input'] = io.BytesIO(cleaned)
+            environ['CONTENT_LENGTH'] = str(len(cleaned))
+
+        return self.app(environ, start_response)
+
+
 soap_app = Application([QuickBooksService],
                        tns='http://developer.intuit.com/',
                        in_protocol=Soap11(validator='lxml'),
                        out_protocol=Soap11())
 
-wsgi_app = WsgiApplication(soap_app)
+wsgi_app = StripIllegalXMLMiddleware(WsgiApplication(soap_app))
 server = make_server('127.0.0.1', 8000, wsgi_app)
 logger.info("Listening on port 8000...")
 try:
