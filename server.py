@@ -2,6 +2,7 @@ import logging
 import threading
 import json
 import io
+import re
 from datetime import datetime, timedelta
 import xmltodict
 from spyne import Application, rpc, ServiceBase, Unicode, Iterable, Integer
@@ -254,18 +255,52 @@ class QuickBooksService(ServiceBase):
     def getLastError(ctx, ticket):
         return ["", ""]
 
-# ── QuickBooks sometimes emits raw control characters (vertical tab, form feed,
-#    etc.) inside free-text fields like Memo/Name. QBWC forwards them verbatim in
-#    the receiveResponseXML SOAP body, which makes the body un-parseable XML — so
-#    Spyne raises before our handler runs and returns HTTP 500 ("ReceiveResponseXML
-#    failed"), wedging that day's chunk permanently. Strip the XML-1.0-illegal
-#    control bytes from the inbound body before Spyne parses it. Tab (0x09), LF
-#    (0x0A) and CR (0x0D) are legal and preserved; nothing else below 0x20 is.
-_ILLEGAL_XML_BYTES = bytes(b for b in range(0x20) if b not in (0x09, 0x0A, 0x0D))
+# ── QBWC/QuickBooks forward journal report data verbatim in the receiveResponseXML
+#    SOAP body. When a day's free-text fields (Memo/Name) contain bytes that aren't
+#    valid in an XML-1.0 UTF-8 document, the whole body fails to parse and Spyne
+#    returns HTTP 500 ("ReceiveResponseXML failed") BEFORE our handler runs — which
+#    wedges that day's chunk forever. This middleware repairs three known offenders,
+#    then (if the body STILL won't parse) dumps the raw bytes so the exact cause is
+#    visible instead of a blind 500.
+#      1. Raw control bytes   (0x00-0x1F except tab/LF/CR)
+#      2. cp1252 high bytes    (smart quotes/dashes: 0x80-0x9F — invalid as UTF-8)
+#      3. Illegal char refs    (&#11; / &#xB; pointing at forbidden code points)
+_ILLEGAL_XML_UNICHARS = {c: None for c in range(0x20) if c not in (0x09, 0x0A, 0x0D)}
+_CHARREF_RE = re.compile(r'&#(x[0-9a-fA-F]+|\d+);')
+
+
+def _is_legal_xml_codepoint(code):
+    return (
+        code in (0x09, 0x0A, 0x0D)
+        or 0x20 <= code <= 0xD7FF
+        or 0xE000 <= code <= 0xFFFD
+        or 0x10000 <= code <= 0x10FFFF
+    )
+
+
+def _strip_illegal_charrefs(text):
+    def repl(m):
+        token = m.group(1)
+        code = int(token[1:], 16) if token[0] in 'xX' else int(token)
+        return m.group(0) if _is_legal_xml_codepoint(code) else ''
+    return _CHARREF_RE.sub(repl, text)
+
+
+def repair_inbound_xml(body):
+    """Return body normalized to valid UTF-8 XML text (bytes)."""
+    # Decode as UTF-8; fall back to cp1252 (QuickBooks/Windows ANSI) if that fails,
+    # so smart quotes/dashes become proper characters instead of breaking the parse.
+    try:
+        text = body.decode('utf-8')
+    except UnicodeDecodeError:
+        text = body.decode('cp1252', errors='replace')
+    text = text.translate(_ILLEGAL_XML_UNICHARS)   # drop raw control chars
+    text = _strip_illegal_charrefs(text)           # drop illegal &#..; references
+    return text.encode('utf-8')
 
 
 class StripIllegalXMLMiddleware:
-    """WSGI middleware that removes XML-illegal control bytes from the request body."""
+    """WSGI middleware that repairs XML-illegal content in the request body."""
 
     def __init__(self, app):
         self.app = app
@@ -277,12 +312,28 @@ class StripIllegalXMLMiddleware:
             length = 0
 
         if length > 0:
-            body = environ['wsgi.input'].read(length)
-            cleaned = body.translate(None, _ILLEGAL_XML_BYTES)
-            if len(cleaned) != len(body):
+            raw = environ['wsgi.input'].read(length)
+            cleaned = repair_inbound_xml(raw)
+            if cleaned != raw:
                 logger.warning(
-                    f"Stripped {len(body) - len(cleaned)} illegal XML control "
-                    f"byte(s) from inbound request body before parsing"
+                    f"Repaired inbound body: {len(raw)}→{len(cleaned)} bytes "
+                    f"(encoding / illegal-char normalization)"
+                )
+            # Ground-truth diagnostic: if it STILL won't parse, capture the raw
+            # bytes and the exact parser error instead of letting Spyne 500 blindly.
+            try:
+                from lxml import etree as _etree
+                _etree.fromstring(cleaned)
+            except Exception as parse_err:
+                dump = f"bad_soap_body_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.bin"
+                try:
+                    with open(dump, 'wb') as fh:
+                        fh.write(raw)
+                except Exception:
+                    pass
+                logger.error(
+                    f"Inbound SOAP body still invalid after repair: {parse_err} "
+                    f"— raw body saved to {dump} for inspection"
                 )
             environ['wsgi.input'] = io.BytesIO(cleaned)
             environ['CONTENT_LENGTH'] = str(len(cleaned))
