@@ -50,7 +50,7 @@ def send_email_via_logic_app(account, original_account):
 """,
             "isHtml": True,
             "to": "elbert.ehsan@epikafleet.com",
-            "cc": ["mlarson@pfstruck.com", "Jack.Kegermann@epikafleet.com"]
+            "cc": ["mlarson@pfstruck.com", "thomas.okumbe@epikafleet.com"]
         }
 
         headers = {"Content-Type": "application/json"}
